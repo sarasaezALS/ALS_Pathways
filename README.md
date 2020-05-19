@@ -11,10 +11,10 @@ We have performed a **three-stage study design** to identify pathways and cell t
 https://www.ncbi.nlm.nih.gov/pubmed/27455348
 
 
-**Training Dataset**. 	Plink Binary files containing individual-level data  genotype in our lab and  consisting in 5,605 ALS cases and 24,110 control subjects *(Nicolas et al., 2018)*.
+**Training Dataset**. 	Plink Binary files containing individual-level data  genotype consisting in 5,605 ALS cases and 24,110 control subjects *(Nicolas et al., 2018)*.
 https://www.ncbi.nlm.nih.gov/pubmed/29566793
 
-**Replication Dataset.** Plink Binary files containing individual-level data  genotype in our lab and  consisting in  2,411 ALS cases and 10,322 controls *(Nicolas et al., 2018)*.
+**Replication Dataset.** Plink Binary files containing individual-level data consisting in 2,411 ALS cases and 10,322 controls *(Nicolas et al., 2018)*.
 https://www.ncbi.nlm.nih.gov/pubmed/29566793
 
 
