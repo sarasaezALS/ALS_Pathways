@@ -1,0 +1,449 @@
+
+# Load necessary packages
+library(Seurat)
+library(sctransform)
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+library(svglite)
+
+# Set up future for parallelization
+library(future)
+library(future.apply)
+plan("multiprocess", workers = 8)
+options(future.globals.maxSize = 50000 * 1024^2)
+
+# Read in data
+S1027.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S1027/filtered_feature_bc_matrix/")
+S1672.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S1672/filtered_feature_bc_matrix/")
+S1363.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S1363/filtered_feature_bc_matrix/")
+S5123.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S5123/filtered_feature_bc_matrix/")
+S630.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S630/filtered_feature_bc_matrix/")
+S1584.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S1584/filtered_feature_bc_matrix/")
+S4022.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S4022/filtered_feature_bc_matrix/")
+S5079.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S5079/filtered_feature_bc_matrix/")
+S4924.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S4924/filtered_feature_bc_matrix/")
+S1135.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S1135/filtered_feature_bc_matrix/")
+S4724.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S4724/filtered_feature_bc_matrix/")
+S794.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S794/filtered_feature_bc_matrix/")
+S1209.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S1209/filtered_feature_bc_matrix/")
+S1230.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S1230/filtered_feature_bc_matrix/")
+S1274.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set15_rs76904798/S1274/filtered_feature_bc_matrix/")
+
+S72a.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set6_rs76904798_n2/72a/filtered_feature_bc_matrix/")
+S72b.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set6_rs76904798_n2/72b/filtered_feature_bc_matrix/")
+S1027a.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set6_rs76904798_n2/1027a/filtered_feature_bc_matrix/")
+S1027b.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set6_rs76904798_n2/1027b/filtered_feature_bc_matrix/")
+S5123a.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set6_rs76904798_n2/5123a/filtered_feature_bc_matrix/")
+S5123b.data <- Read10X(data.dir = "/data/langstonrg/snRNAseq/data/FC_Set6_rs76904798_n2/5123b/filtered_feature_bc_matrix/")
+
+
+# Create Seurat objects
+S1027 <- CreateSeuratObject(counts = S1027.data, min.cells = 3, min.features = 500, project = "S1027")
+S1672 <- CreateSeuratObject(counts = S1672.data, min.cells = 3, min.features = 500, project = "S1672")
+S1363 <- CreateSeuratObject(counts = S1363.data, min.cells = 3, min.features = 500, project = "S1363")
+S5123 <- CreateSeuratObject(counts = S5123.data, min.cells = 3, min.features = 500, project = "S5123")
+S630 <- CreateSeuratObject(counts = S630.data, min.cells = 3, min.features = 500, project = "S630")
+S1584 <- CreateSeuratObject(counts = S1584.data, min.cells = 3, min.features = 500, project = "S1584")
+S4022 <- CreateSeuratObject(counts = S4022.data, min.cells = 3, min.features = 500, project = "S4022")
+S5079 <- CreateSeuratObject(counts = S5079.data, min.cells = 3, min.features = 500, project = "S5079")
+S4924 <- CreateSeuratObject(counts = S4924.data, min.cells = 3, min.features = 500, project = "S4924")
+S1135 <- CreateSeuratObject(counts = S1135.data, min.cells = 3, min.features = 500, project = "S1135")
+S4724 <- CreateSeuratObject(counts = S4724.data, min.cells = 3, min.features = 500, project = "S4724")
+S794 <- CreateSeuratObject(counts = S794.data, min.cells = 3, min.features = 500, project = "S794")
+S1209 <- CreateSeuratObject(counts = S1209.data, min.cells = 3, min.features = 500, project = "S1209")
+S1230 <- CreateSeuratObject(counts = S1230.data, min.cells = 3, min.features = 500, project = "S1230")
+S1274 <- CreateSeuratObject(counts = S1274.data, min.cells = 3, min.features = 500, project = "S1274")
+
+S72a <- CreateSeuratObject(counts = S72a.data, min.cells = 3, min.features = 500, project = "S72a")
+S72b <- CreateSeuratObject(counts = S72b.data, min.cells = 3, min.features = 500, project = "S72b")
+
+S1027a <- CreateSeuratObject(counts = S1027a.data, min.cells = 3, min.features = 500, project = "S1027a")
+S1027b <- CreateSeuratObject(counts = S1027b.data, min.cells = 3, min.features = 500, project = "S1027b")
+
+S5123a <- CreateSeuratObject(counts = S5123a.data, min.cells = 3, min.features = 500, project = "S5123a")
+S5123b <- CreateSeuratObject(counts = S5123b.data, min.cells = 3, min.features = 500, project = "S5123b")
+
+# Merge replicate runs (for now...a,b samples were "batch 5"; combined with other batch run also called "batch 5")
+S1027 <- merge(S1027, y = c(S1027a, S1027b), add.cell.ids = c("S1027", "S1027a", "S1027b"), project = "S1027")
+S5123 <- merge(S5123, y = c(S5123a, S5123b), add.cell.ids = c("S5123", "S5123a", "S5123b"), project = "S5123")
+S72 <- merge(S72a, y = S72b, add.cell.ids = c("S72a", "S72b"), project = "S72")
+
+# Add batch, sex, age, and age.group (< median 33 is 1; >= 33 is 2)
+S1027$batch <- 5
+S1027$sex <- "Male"
+S1027$age <- 22
+S1027$age.group <- 1
+
+S1672$batch <- 2
+S1672$sex <- "Male"
+S1672$age <- 19
+S1672$age.group <- 1
+
+S1363$batch <- 2
+S1363$sex <- "Female"
+S1363$age <- 40
+S1363$age.group <- 2
+
+S5123$batch <- 5
+S5123$sex <- "Male"
+S5123$age <- 61
+S5123$age.group <- 2
+
+S630$batch <- 3
+S630$sex <- "Male"
+S630$age <- 19
+S630$age.group <- 1
+
+S1584$batch <- 3
+S1584$sex <- "Female"
+S1584$age <- 18
+S1584$age.group <- 1
+
+S4022$batch <- 3
+S4022$sex <- "Female"
+S4022$age <- 57
+S4022$age.group <- 2
+
+S5079$batch <- 3
+S5079$sex <- "Male"
+S5079$age <- 33
+S5079$age.group <- 2
+
+S4924$batch <- 4
+S4924$sex <- "Male"
+S4924$age <- 48
+S4924$age.group <- 2
+
+S1135$batch <- 4
+S1135$sex <- "Male"
+S1135$age <- 42
+S1135$age.group <- 2
+
+S4724$batch <- 4
+S4724$sex <- "Female"
+S4724$age <- 16
+S4724$age.group <- 1
+
+S794$batch <- 4
+S794$sex <- "Female"
+S794$age <- 51
+S794$age.group <- 2
+
+S1209$batch <- 1
+S1209$sex <- "Female"
+S1209$age <- 39
+S1209$age.group <- 2
+
+S1230$batch <- 1
+S1230$sex <- "Female"
+S1230$age <- 16
+S1230$age.group <- 1
+
+S1274$batch <- 1
+S1274$sex <- "Male"
+S1274$age <- 49
+S1274$age.group <- 2
+
+S72$batch <- 5
+S72$sex <- "Female"
+S72$age <- 18
+S72$age.group <- 1
+
+# Normalize (SCTransform) and Integrate
+FC_Set21.list <- c(S1027, S1672, S1363, S5123, S630, S1584, S4022, S5079, S4924, S1135, S4724, S794, S1209, S1230, S1274, S72)
+FC_Set21.list <- future_lapply(X = FC_Set21.list, FUN = function(x) {
+  x <- PercentageFeatureSet(x, pattern = "^MT-", col.name = "percent.mt")
+  x <- SCTransform(x, vars.to.regress = "percent.mt", verbose = FALSE)
+})
+
+frontal.features <- SelectIntegrationFeatures(object.list = FC_Set21.list)
+FC_Set21.list <- future_lapply(X = FC_Set21.list, FUN = function(x) {
+  x <- RunPCA(x, features = frontal.features, verbose = FALSE)
+})
+
+FC_Set21.list <- PrepSCTIntegration(object.list = FC_Set21.list, anchor.features = frontal.features)
+frontal.anchors <- FindIntegrationAnchors(object.list = FC_Set21.list, normalization.method = "SCT", anchor.features = frontal.features, reduction = "rpca", dims = 1:30)
+frontal.integrated <- IntegrateData(anchorset = frontal.anchors, normalization.method = "SCT", dims = 1:30)
+frontal.integrated  # 186095 nuclei
+
+#save(file = "output/FC_Set21_SeuratAnalysis_integrated.Rdata", object = frontal.integrated)
+
+#Check out integrated object
+p1 <- VlnPlot(object = frontal.integrated, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, pt.size = 0)
+ggsave("plots/FC_Set21_characterization1.png", plot = p1, width = 12, height = 2.5)
+
+
+p2 <- FeatureScatter(object = frontal.integrated, feature1 = "nCount_RNA", feature2 = "percent.mt") + NoLegend()
+p3 <- FeatureScatter(object = frontal.integrated, feature1 = "nCount_RNA", feature2 = "nFeature_RNA") + NoLegend()
+ggsave("plots/FC_Set21_characterization2.png", plot = (plot_grid(p2, p3)), width = 11, height = 6, units = "in", dpi = 300)
+
+# Remove outliers
+frontal.integrated <- subset(frontal.integrated, subset = nFeature_RNA > 200 & nCount_RNA < 100000 & percent.mt < 5)
+frontal.integrated  # 178150 nuclei
+
+p4 <- VlnPlot(object = frontal.integrated, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), group.by = "orig.ident", ncol = 3, pt.size = 0)
+ggsave("plots/Set21_integrated_filt_Vln_by_donor.png", plot = p4, width = 13, height = 2.5)
+
+#Cluster
+frontal.integrated <- frontal.integrated %>%
+  RunPCA(verbose = FALSE) %>%
+  RunUMAP(dims = 1:30, verbose = FALSE) %>%
+  FindNeighbors(dims = 1:30, verbose = FALSE) %>%
+  FindClusters(resolution = 0.6)
+
+save(file = "output/FC_Set21_SeuratAnalysis_clustered.Rdata", object = frontal.integrated)
+
+#p4 <- DimPlot(frontal.integrated, reduction = "umap", group.by = "orig.ident")
+#ggsave("plots/FC_Set21_UMAP_Clusters_origident.png", plot = p4, width = 8.5, height = 6, units = "in", dpi = 300)
+
+#ggsave("plots/FC_Set21_UMAP_Clusters_num.png", plot = p5, width = 6, height = 6, units = "in", dpi = 300)
+
+p5 <- DimPlot(frontal.integrated, reduction = "umap", label = TRUE) + NoLegend()
+ggsave("plots/Set21_UMAP_filt_num.png", plot = p5, width = 6, height = 6, units = "in", dpi = 300)
+
+p6 <- DimPlot(frontal.integrated, reduction = "umap", group.by = "orig.ident")
+ggsave("plots/Set21_UMAP_filt_origident.png", plot = p6, width = 8.5, height = 6, units = "in", dpi = 300)
+
+
+# Switch to SCT assay
+DefaultAssay(frontal.integrated) <- "SCT"
+frontal.integrated  # 178150 nuclei
+
+frontal.integrated.markers <- FindAllMarkers(object = frontal.integrated, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25, min.diff.pct = 0.25)
+write.csv(frontal.integrated.markers, file = "output/FC_Set21_snRNAseq_markers.csv")
+top10.frontal.integrated <- frontal.integrated.markers %>% group_by(cluster) %>% top_n(10, avg_logFC)
+write.csv(top10.frontal.integrated, file = "output/top10_FC_Set21_snRNAseq_markers.csv")
+
+
+# Take a look at clusters
+p8 <- VlnPlot(frontal.integrated, c("SLC17A7", "RORB", "THEMIS", "FEZF2" ), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_ExN_SLC17A7_RORB_THEMIS_FEZF2.png", plot = p8, width = 12, height = 5)
+
+##PMID: 27339989 ExN markers
+p8 <- VlnPlot(frontal.integrated, c("SATB2", "NTNG2", "OPRK1", "HTR2C" ), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_ExN_SATB2_NTNG2_OPRK1_HTR2C.png", plot = p8, width = 12, height = 5)
+
+p8 <- VlnPlot(frontal.integrated, c("PCP4", "NR4A2", "FOXP2", "BHLHE22" ), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_ExN_PCP4_NR4A2_FOXP2_BHLHE22.png", plot = p8, width = 12, height = 5)
+
+p8 <- VlnPlot(frontal.integrated, c("CBLN2", "FAM19A1", "SERPINE2", "LRRTM4" ), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_ExN_CBLN2_FAM19A1_SERPINE2_LRRTM4.png", plot = p8, width = 12, height = 5)
+
+p8 <- VlnPlot(frontal.integrated, c("LAMP5", "CARTPT", "PRSS12", "ETV1" ), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_ExN_LAMP5_CARTPT_PRSS12_ETV1.png", plot = p8, width = 12, height = 5)
+
+p8 <- VlnPlot(frontal.integrated, c("TLE4", "ADRA2A", "SEMA3E", "RXFP1" ), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_ExN_TLE4_ADRA2A_SEMA3E_RXFP1.png", plot = p8, width = 12, height = 5)
+
+p8 <- VlnPlot(frontal.integrated, c("S100A10", "THY1", "CREG2", "ALDH1L1-AS2" ), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_ExN_S100A10_THY1_CREG2_ALDH1L1-AS2.png", plot = p8, width = 12, height = 5)
+
+
+p9 <- VlnPlot(frontal.integrated, c("GAD1", "SST", "VIP", "PVALB"), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_InN_GAD1_SST_VIP_PVALB.png", plot = p9, width = 12, height = 5)
+
+##PMID: 27339989 InN markers
+p9 <- VlnPlot(frontal.integrated, c("CXCL14", "PLD5", "CALB2", "CCK"), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_InN_CXCL14_PLD5_CALB2_CCK.png", plot = p9, width = 12, height = 5)
+
+p9 <- VlnPlot(frontal.integrated, c("CRHBP", "NOS1", "NDNF", "SULF1"), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_InN_CRHBP_NOS1_NDNF_SULF1.png", plot = p9, width = 12, height = 5)
+
+p9 <- VlnPlot(frontal.integrated, c("RELN", "SV2C", "PDE9A", "FGF13"), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_InN_RELN_SV2C_PDE9A_FGF13.png", plot = p9, width = 12, height = 5)
+
+p10 <- VlnPlot(frontal.integrated, c("PDGFRA", "OLIG2", "PLP1", "MOBP"), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_OPC_ODC_PDGFRA_MOBP.png", plot = p10, width = 12, height = 5)
+
+p11 <- VlnPlot(frontal.integrated, c("SLC1A2", "SLC1A3", "GFAP", "AQP4"), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_AST_SLC1A2_SLC1A3_GFAP_AQP4.png", plot = p11, width = 12, height = 5)
+
+p12 <- VlnPlot(frontal.integrated, c("P2RY12", "ITGAM", "CSF1R", "CX3CR1"), pt.size = 0, ncol = 2) + NoLegend()  #ITGAM is CD11b
+ggsave("plots/markers/Vln_P2RY12_CSF1R_CX3CR1_ITGAM.png", plot = p12, width = 12, height = 5)
+
+p13 <- VlnPlot(frontal.integrated, c("CLDN5", "COLEC12"), pt.size = 0, ncol = 1) + NoLegend()
+ggsave("plots/markers/Vln_CLDN5_COLEC12.png", plot = p13, width = 8, height = 6)
+
+p14 <- VlnPlot(frontal.integrated, c("CUX2", "SNCA"), pt.size = 0, ncol = 1) + NoLegend()
+ggsave("plots/markers/Vln_CUX2_SNCA.png", plot = p14, width = 8, height = 6)
+
+
+library(Seurat)
+library(ggplot2)
+
+# Load object produced by script Set21_FrontalCortex_snRNAseq_SeuratAnalysis.R
+load("output/FC_Set21_SeuratAnalysis_clustered.Rdata")
+
+# Switch to SCT assay
+DefaultAssay(frontal.integrated) <- "SCT"
+frontal.integrated  # 178,150 nuclei; 28,269 SCT features
+
+# Save numerical cluster IDs before renaming based on marker gene expression
+frontal.integrated$num.ident <- Idents(frontal.integrated)
+
+# Exclude clusters with markers of many cell types: 19, 27, 35, 36, 38
+frontal.integrated <- subset(frontal.integrated, idents = c(19, 27, 35, 36, 38), invert = TRUE)
+frontal.integrated # 170,994 nuclei
+
+## ExN.4 has differential expression of ODC markers (PLP1, MBP, ST18) compared to other celltypes - exclude
+frontal.integrated <- subset(frontal.integrated, idents = 4, invert = TRUE)
+frontal.integrated # 161,225 nuclei
+
+# Name ExN
+frontal.integrated <- RenameIdents(frontal.integrated, `0` = "ExN.LINC00507.GLRA3",
+                                   `1` = "ExN.LINC00507.GRIK4",
+                                   `5` = "ExN.RORB.RXFP1",
+                                   `11` = "ExN.THEMIS.PDZRN4",
+                                   `12` = "ExN.RORB.FOXP2",
+                                   `16` = "ExN.RORB.PRSS12",
+                                   `17` = "ExN.CUX2.LAMP5",
+                                   `18` = "ExN.TLE4.RXFP1",
+                                   `20` = "ExN.TLE4.FOXP2",
+                                   `29` = "ExN.FEZF2.HTR2C",
+                                   `32` = "ExN.RORB.TOX",
+                                   `34` = "ExN.THEMIS.RGS12",
+                                   `37` = "ExN.FEZF2.VAT1L"
+)
+
+
+# Name InN
+frontal.integrated <- RenameIdents(frontal.integrated, `9` = "InN.SST.PDE1A",
+                                   `10` = "InN.LHX6.SULF1",
+                                   `14` = "InN.VIP.SYNPR",
+                                   `22` = "InN.ADARB2.SV2C",
+                                   `23` = "InN.ADARB2.RELN",
+                                   `25` = "InN.VIP.CXCL14",
+                                   `28` = "InN.LHX6.GPC5",
+                                   `30` = "InN.LAMP5.TOX",
+                                   `31` = "InN.PVALB.TOX",
+                                   `33` = "InN.ADARB2.CNR1",
+                                   `39` = "InN.SST.NPY"
+)
+
+# Name OPC and ODC (PDGFRA, OLIG2 and PLP1, MOBP)
+frontal.integrated <- RenameIdents(frontal.integrated, `8` = "OPC.PDGFRA",
+                                   `2` = "ODC.SLC5A11",
+                                   `3` = "ODC.OPALIN",
+                                   `6` = "ODC.NRG3",  #some neuronal markers...consider excluding
+                                   `15` = "ODC.LINC00609"
+)
+
+# Name MGL and AST
+frontal.integrated <- RenameIdents(frontal.integrated, `7` = "AST.CABLES1", 
+                                   `21` = "AST.GFAP",
+                                   `13` = "MGL.CSF1R"
+)
+
+# Name EC
+frontal.integrated <- RenameIdents(frontal.integrated, `24` = "EC.CACNA2D3",
+                                   `26` = "EC.CLDN5")
+
+
+frontal.integrated$celltype <- Idents(frontal.integrated)
+
+# OR frontal.integrated$level2class <- Idents(frontal.integrated)
+
+p1 <- DimPlot(frontal.integrated, reduction = 'umap', label = T, label.size = 3, pt.size = 0.1, repel = F) + NoLegend()
+ggsave("plots/FC_Set21_UMAP_Labeled.png", plot = p1, width = 12, height = 12)
+ggsave("plots/FC_Set21_UMAP_Labeled_celltype.png", plot = p1, width = 6, height = 5.92)
+ggsave("plots/FC_Set21_UMAP_Labeled_celltype.svg", plot = p1, width = 6, height = 5.92)
+
+write.csv(table(frontal.integrated$orig.ident), file = "output/nuclei_per_donor.csv")
+write.csv(table(Idents(frontal.integrated), frontal.integrated$orig.ident), file = "output/nuclei_per_donor_per_celltype.csv")
+write.csv(prop.table(table(Idents(frontal.integrated), frontal.integrated$orig.ident), margin = 2), file = "output/prop_nuclei_per_donor_per_celltype.csv")
+
+#save(file = "output/FC_Set21_clustered_named.Rdata", object = frontal.integrated)
+
+
+markers <- c("SLC17A7", "SATB2", "FAM19A1", "SV2B", "NRGN", "CBLN2", "LINC00507", "THEMIS", "RORB", "FEZF2", "CUX2", 
+             "TLE4", "GLRA3", "TOX", "PDE1A", "VAT1L", "GAD1", "GAD2", "SLC6A1", "ERBB4", "GRIK1", "GRIP1", "ADARB2",
+             "SST", "PVALB", "LAMP5", "VIP", "CXCL14", "CALB2", "RELN", "SYNPR", "FGF13",
+             "SLC1A3", "AQP4", "GFAP", "COL5A3", "ALDH1L1", "CLDN5", "COLEC12", "EPAS1", "ABCB1", "MECOM", "P2RY12", "PLXDC2", "CSF1R",
+             "APBB1IP", "CD74", "PDGFRA", "LHFPL3", "PTPRZ1", "MYT1", "VCAN", "PLP1", "ST18", "MOBP", "MBP", "OPALIN"
+)
+
+cluster.averages <- AverageExpression(frontal.integrated, assays = "SCT", features = markers, return.seurat = T)
+
+clust.av.df <- as.data.frame(as.matrix(cluster.averages@assays$SCT@scale.data))
+clust.av.df <- tibble::rownames_to_column(clust.av.df, var = "Gene")
+write.csv(file = "output/Set21_marker_genes_scaled.csv", quote = F, row.names = F, clust.av.df)
+
+
+cluster.averages <- AverageExpression(frontal.integrated, assays = "SCT", return.seurat = F)
+
+clust.av.df <- as.data.frame(cluster.averages$SCT)
+clust.av.df <- tibble::rownames_to_column(clust.av.df, var = "Gene")
+write.csv(file = "output/Set21_average_gene_expression_normalized.csv", quote = F, row.names = F, clust.av.df)
+
+
+p1 <- VlnPlot(frontal.integrated, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, pt.size = 0)
+ggsave("plots/Set21_integrated_Vln.png", plot = p1, width = 6, height = 4)
+
+# Idents(frontal.integrated) <- "num.ident"
+# Name ExN
+frontal.integrated <- RenameIdents(frontal.integrated, `0` = "ExN",
+                                   `1` = "ExN",
+                                   `5` = "ExN",
+                                   `11` = "ExN",
+                                   `12` = "ExN",
+                                   `16` = "ExN",
+                                   `17` = "ExN",
+                                   `18` = "ExN",
+                                   `20` = "ExN",
+                                   `29` = "ExN",
+                                   `32` = "ExN",
+                                   `34` = "ExN",
+                                   `37` = "ExN"
+)
+
+
+# Name InN
+frontal.integrated <- RenameIdents(frontal.integrated, `9` = "InN",
+                                   `10` = "InN",
+                                   `14` = "InN",
+                                   `22` = "InN",
+                                   `23` = "InN",
+                                   `25` = "InN",
+                                   `28` = "InN",
+                                   `30` = "InN",
+                                   `31` = "InN",
+                                   `33` = "InN",
+                                   `39` = "InN"
+)
+
+# Name OPC and ODC (PDGFRA, OLIG2 and PLP1, MOBP)
+frontal.integrated <- RenameIdents(frontal.integrated, `8` = "OPC",
+                                   `2` = "ODC",
+                                   `3` = "ODC",
+                                   `6` = "ODC",  #some neuronal markers...consider excluding
+                                   `15` = "ODC"
+)
+
+# Name MGL and AST
+frontal.integrated <- RenameIdents(frontal.integrated, `7` = "AST", 
+                                   `21` = "AST",
+                                   `13` = "MGL"
+)
+
+# Name EC
+frontal.integrated <- RenameIdents(frontal.integrated, `24` = "EC",
+                                   `26` = "EC")
+
+frontal.integrated$broadcelltype <- Idents(frontal.integrated)
+
+# OR frontal.integrated$level1class <- Idents(frontal.integrated)
+
+write.csv(table(Idents(frontal.integrated), frontal.integrated$orig.ident), file = "output/nuclei_per_donor_per_broadcelltype.csv")
+
+p1 <- DimPlot(frontal.integrated, reduction = 'umap', label = T, label.size = 6, pt.size = 0.1) + NoLegend()
+ggsave("plots/FC_Set21_UMAP_Labeled_broadcelltype.png", plot = p1, width = 6, height = 5.92)
+ggsave("plots/FC_Set21_UMAP_Labeled_broadcelltype.svg", plot = p1, width = 6, height = 5.92)
+
+cluster.averages <- AverageExpression(frontal.integrated, assays = "SCT", return.seurat = F)
+
+clust.av.df <- as.data.frame(cluster.averages$SCT)
+clust.av.df <- tibble::rownames_to_column(clust.av.df, var = "Gene")
+write.csv(file = "output/Set21_average_gene_expression_normalized_broadcelltypes.csv", quote = F, row.names = F, clust.av.df)
+
+
