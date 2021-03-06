@@ -1,0 +1,114 @@
+#### LINEAR REGRESSION AND PLOTS FOR CELL TYPES USING PRSice2 summary ####
+#Load packages
+library(data.table)
+library(dplyr)
+library(ggplot2)
+#read in PRSice2 output
+data = read.csv("/Users/saezs/Desktop/34celltypes.Checkjune.2020.csv", header = T)
+head(data)
+
+####Cell types including GWAS hits
+
+#### HUMAN FRONTAL CORTEX
+
+ggplot(data, aes(x= Decile, y= PRS.R2, colour =Cell_type)) + geom_point() + stat_smooth(method=lm) +  xlim ("1", "2", "3", "4", "5", "6", "7", "8", "9", "10") + 
+  
+  theme(panel.grid.major = element_blank(), legend.position="none", panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) +
+  facet_wrap(~Cell_type, ncol=4)
+
+
+cell_types = levels(data$Cell_type)
+for(i in 1:length(cell_types))
+{
+  cell_type = cell_types[i]
+  dat = subset(data, Cell_type == cell_type)
+  thisLm = lm(PRS.R2 ~ Decile, data = dat)
+  print(cell_type)
+  print(summary(thisLm))
+}
+
+#### HUMAN MOTOR CORTEX
+data = read.csv("MotorNeuron.csv", header = T)
+head(data)
+####Cell types including GWAS hits
+
+
+ggplot(data, aes(x= Decile, y= PRS.R2, colour =Cell._type)) + geom_point() + stat_smooth(method=lm) + 
+  xlim ("1", "2", "3", "4", "5", "6", "7", "8", "9", "10") + 
+  theme(panel.grid.major = element_blank(), legend.position="none", panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) +
+  facet_wrap(~Cell._type, ncol = 5)
+
+
+cell_types = levels(data$Cell._type)
+for(i in 1:length(cell_types))
+{
+  cell_type = cell_types[i]
+  dat = subset(data, Cell._type == cell_type)
+  thisLm = lm(PRS.R2 ~ Decile, data = dat)
+  print(cell_type)
+  print(summary(thisLm))
+}
+
+#### HUMAN FRONTAL CORTEX/ HIPPOCAMPUS
+
+data = read.csv("/Users/saezs/Desktop/Habid13results.csv", header = T)
+head(data)
+
+ggplot(data, aes(x= Decile, y= PRS.R2, colour =Cell._type)) + geom_point() + stat_smooth(method=lm) +  xlim ("1", "2", "3", "4", "5", "6", "7", "8", "9", "10") + 
+  
+  theme(panel.grid.major = element_blank(), legend.position="none", panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) + facet_wrap(~Cell._type)
+
+
+cell_types = levels(data$Cell_type)
+for(i in 1:length(cell_types))
+{
+  cell_type = cell_types[i]
+  dat = subset(data, Cell_type == cell_type)
+  thisLm = lm(PRS.R2 ~ Decile, data = dat)
+  print(cell_type)
+  print(summary(thisLm))
+}
+
+#### MOUSE LUMBAR SPINAL CORD
+data = read.csv("/Users/saezs/Desktop/Sathyamurthy.2018/MouseSpinalCord.csv", header = T)
+head(data)
+####Cell types including GWAS hits
+
+
+ggplot(data, aes(x= Decile, y= PRS.R2, colour =Cell._type)) + geom_point() + stat_smooth(method=lm) + 
+  xlim ("1", "2", "3", "4", "5", "6", "7", "8", "9", "10") + 
+  theme(panel.grid.major = element_blank(), legend.position="none", panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) +
+  facet_wrap(~Cell._type, ncol=5)
+
+
+cell_types = levels(data$Cell._type)
+for(i in 1:length(cell_types))
+{
+  cell_type = cell_types[i]
+  dat = subset(data, Cell._type == cell_type)
+  thisLm = lm(PRS.R2 ~ Decile, data = dat)
+  print(cell_type)
+  print(summary(thisLm))
+}
+
+#### Mouse Karolinska superset
+
+data = read.csv("/Users/saezs/Desktop/SuperSetKarolinska.Check.csv", header = T)
+head(data)
+####Cell types including GWAS hits
+
+
+ggplot(data, aes(x= Decile, y= PRS.R2, colour =Cell._type)) + geom_point() + stat_smooth(method=lm) +  xlim ("1", "2", "3", "4", "5", "6", "7", "8", "9", "10") + 
+  
+  theme(panel.grid.major = element_blank(), legend.position="none", panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) + facet_wrap(~Cell._type)
+
+
+cell_types = levels(data$Cell._type)
+for(i in 1:length(cell_types))
+{
+  cell_type = cell_types[i]
+  dat = subset(data, Cell._type == cell_type)
+  thisLm = lm(PRS.R2 ~ Decile, data = dat)
+  print(cell_type)
+  print(summary(thisLm))
+}
