@@ -1,0 +1,149 @@
+# Load necessary packages
+library(Seurat)
+library(sctransform)
+library(dplyr)
+library(ggplot2)
+
+# Read in data
+## need to transpose - rownames are nuclei IDs, columns are genes in original matrix
+motorctx.data <- t(read.csv(file = "data/ABI_motor_cortex_gene_expression_matrix.csv", header = T, row.names = 1, sep = ",", as.is = T))
+
+
+# Create Seurat object
+motorctx <- CreateSeuratObject(counts = motorctx.data, min.cells = 3, min.features = 500, project = "Motor_Cortex")
+
+# Check for mt genes
+genes <- rownames(motorctx.data)
+genes[grep(pattern = "^MT-", x = genes)]  # returns empty vector, no matches
+
+# SCTransform to normalize object (no mt genes to regress out)
+motorctx <- SCTransform(motorctx, verbose = FALSE)
+motorctx  # 76533 nuclei as expected
+
+# Check out object
+p1 <- VlnPlot(object = motorctx, features = c("nFeature_RNA", "nCount_RNA"), ncol = 2, pt.size = 0)
+ggsave("plots/MotorCtx_characterization1.png", plot = p1, width = 8, height = 5, units = "in")
+
+p2 <- FeatureScatter(object = motorctx, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+ggsave("plots/MotorCtx_characterization2.png", plot = p2, width = 7, height = 5, units = "in")
+
+
+# Cluster
+motorctx <- motorctx %>%
+  RunPCA(verbose = FALSE) %>%
+  RunUMAP(dims = 1:30, verbose = FALSE) %>%
+  FindNeighbors(dims = 1:30, verbose = FALSE)
+
+motorctx <- FindClusters(motorctx, resolution = 0.8)  # res 0.8 looks OK
+
+p3 <- DimPlot(motorctx, reduction = "umap", label = TRUE) + NoLegend()
+ggsave("plots/MotorCortex_UMAP_Clusters.png", plot = p3, width = 6, height = 6, units = "in")
+
+save(file = "output/MotorCortex_Seurat_clustered.Rdata", object = motorctx)
+
+
+# Take a look at clusters
+p4 <- VlnPlot(motorctx, c("SLC17A7", "SATB2"), pt.size = 0, ncol = 1) + NoLegend()
+ggsave("plots/markers/Vln_ExN_SLC17A7_SATB22.png", plot = p4, width = 8, height = 5)
+
+p5 <- VlnPlot(motorctx, c("GAD1", "GAD2"), pt.size = 0, ncol = 1) + NoLegend()
+ggsave("plots/markers/Vln_InN_GAD1_GAD2.png", plot = p5, width = 8, height = 5)
+
+p6 <- VlnPlot(motorctx, c("PDGFRA", "OLIG2", "PLP1", "MOBP"), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_OPC_ODC_PDGFRA_MOBP.png", plot = p6, width = 13, height = 5)
+
+p7 <- VlnPlot(motorctx, c("SLC1A2", "SLC1A3", "GFAP", "AQP4"), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_AST_SLC1A2_SLC1A3_GFAP_AQP4.png", plot = p7, width = 13, height = 5)
+
+p8 <- VlnPlot(motorctx, c("P2RY12", "ITGAM", "CSF1R", "CX3CR1"), pt.size = 0, ncol = 2) + NoLegend()
+ggsave("plots/markers/Vln_P2RY12_CSF1R_CX3CR1_ITGAM.png", plot = p8, width = 13, height = 5)
+
+p9 <- VlnPlot(motorctx, c("CLDN5", "COLEC12"), pt.size = 0, ncol = 1) + NoLegend()
+ggsave("plots/markers/Vln_EC_CLDN5_COLEC12.png", plot = p9, width = 8, height = 5)
+
+p10 <- VlnPlot(motorctx, c("LHX3", "CHAT"), pt.size = 0, ncol = 1) + NoLegend()
+ggsave("plots/markers/Vln_MN_LHX3_CHAT.png", plot = p10, width = 8, height = 5)
+
+
+# Identify cluster markers
+motorctx.markers <- FindAllMarkers(object = motorctx, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25, min.diff.pct = 0.25)
+write.csv(motorctx.markers, file = "output/MotorCortex_snRNAseq_markers.csv")
+top10.motorctx <- motorctx.markers %>% group_by(cluster) %>% top_n(10, avg_logFC)
+write.csv(top10.motorctx, file = "output/top10_MotorCortex_snRNAseq_markers.csv")
+
+
+# Save numerical cluster IDs before renaming based on marker gene expression
+motorctx$num.ident <- Idents(motorctx)
+
+# Exclude clusters with markers of many cell types: only 39, ODC + ExN
+motorctx <- subset(motorctx, idents = 39, invert = TRUE)
+motorctx  # 76399 nuclei
+
+# Name ExN
+motorctx <- RenameIdents(motorctx, `1` = "ExN.1",
+                         `2` = "ExN.2",
+                         `3` = "ExN.3",
+                         `5` = "ExN.5",
+                         `6` = "ExN.6",
+                         `7` = "ExN.7",
+                         `9` = "ExN.9",
+                         `10` = "ExN.10",
+                         `12` = "ExN.12",
+                         `13` = "ExN.13",
+                         `16` = "ExN.16",
+                         `17` = "ExN.17",
+                         `18` = "ExN.18",
+                         `19` = "ExN.19",
+                         `22` = "ExN.22",
+                         `25` = "ExN.25",
+                         `26` = "ExN.26",
+                         `28` = "ExN.28",
+                         `29` = "ExN.29",
+                         `30` = "ExN.30",
+                         `31` = "ExN.31",
+                         `34` = "ExN.34",
+                         `35` = "ExN.35"
+)
+
+
+# Name InN
+motorctx <- RenameIdents(motorctx, `0` = "InN.0",
+                         `4` = "InN.4",
+                         `8` = "InN.8",
+                         `14` = "InN.14",
+                         `15` = "InN.15",
+                         `20` = "InN.20",
+                         `21` = "InN.21",
+                         `23` = "InN.23",
+                         `24` = "InN.24",
+                         `32` = "InN.32",
+                         `33` = "InN.33",
+                         `38` = "InN.38",
+                         `40` = "InN.40"
+)
+
+# Name OPC and ODC (PDGFRA, OLIG2 and PLP1, MOBP)
+motorctx <- RenameIdents(motorctx, `37` = "OPC.37",
+                                   `11` = "ODC.11"
+)
+
+# Name MGL and AST
+motorctx <- RenameIdents(motorctx, `27` = "AST.27",
+                                   `36` = "MGL.36"
+)
+
+
+motorctx$celltype <- Idents(motorctx)
+
+p11 <- DimPlot(motorctx, reduction = 'umap', label = T, label.size = 3, pt.size = 0.1, repel = F) + NoLegend()
+ggsave("plots/MotorCortex_UMAP_Labeled_celltype.png", plot = p11, width = 6, height = 5.92)
+
+write.csv(table(Idents(motorctx)), file = "output/nuclei_per_celltype.csv")
+
+cluster.averages <- AverageExpression(motorctx, assays = "SCT", return.seurat = F)
+
+clust.av.df <- as.data.frame(cluster.averages$SCT)
+clust.av.df <- tibble::rownames_to_column(clust.av.df, var = "Gene")
+write.csv(file = "output/MotorCortex_average_gene_expression_normalized.csv", quote = F, row.names = F, clust.av.df)
+
+save(file = "output/MotorCortex_clustered_named.Rdata", object = motorctx) 
